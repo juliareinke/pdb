@@ -1,9 +1,10 @@
 import axios from 'axios';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
 import { TMDB_ACCESS_TOKEN } from '@env';
+console.log(TMDB_ACCESS_TOKEN);
 
 import Header from './components/Header.js';
 import Menu from './components/Menu.js';
@@ -42,46 +43,39 @@ export default function App() {
     ComfortaaLight: require('./assets/fonts/Comfortaa/Comfortaa-Light.ttf'),
   });
 
-  const onLayoutRootView = useCallback(async () => {
-    if (fontsLoaded) {
-      await SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded]);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   useEffect(() => {
-    const buscarDados = async () => {
+    const fetchData = async () => {
       try {
-        const resposta = await axios.get(
-          'https://api.themoviedb.org/3/authentication/token/new',
-          {
-            headers: {
-              accept: 'application/json',
-              Authorization: `Bearer ${process.env.TMDB_ACCESS_TOKEN}`,
-            },
-          }
-        );
-        console.log(resposta.data);
-      } catch (erro) {
-        console.error('Erro ao fazer a requisição', erro);
+        const response = await axios.get('https://api.themoviedb.org/3/authentication/token/new', {
+          headers: {
+            accept: 'application/json',
+            Authorization: `Bearer ${TMDB_ACCESS_TOKEN}`, 
+          },
+        });
+        console.log(response.data);
+        setDataLoaded(true);
+      } catch (error) {
+        console.error('Erro ao carregar dados da API', error);
       }
     };
-
-    buscarDados();
+    
+    fetchData();
   }, []);
 
-  if (!fontsLoaded) {
+  useEffect(() => {
+    const prepare = async () => {
+      if (fontsLoaded && dataLoaded) {
+        await SplashScreen.hideAsync();
+      }
+    };
+    prepare();
+  }, [fontsLoaded, dataLoaded]);
+
+  if (!fontsLoaded || !dataLoaded) {
     return null;
   }
-
-  const theme = {
-    ...DefaultTheme,
-    fonts: {
-      regular: { fontFamily: 'Comfortaa' },
-      medium: { fontFamily: 'ComfortaaBold' },
-      light: { fontFamily: 'ComfortaaLight' },
-      thin: { fontFamily: 'Comfortaa' },
-    },
-  };
 
   return (
     <PaperProvider theme={theme}>
