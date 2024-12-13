@@ -14,6 +14,8 @@ import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import CustomModal from "../components/CustomModal";
+
 export default function CriarWatchList() {
   const [filmes, setFilmes] = useState([]);
   const [watchlist, setWatchlist] = useState([]);
@@ -29,10 +31,22 @@ export default function CriarWatchList() {
     "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjYzZlMjkwN2UxZjI5NzYzZjM2MGVkOWEyMTQyYmM2YiIsIm5iZiI6MTcyOTEyMDMwMi45MDM2OTYsInN1YiI6IjY2YjE2MmIzMjU1ZWRiYjY4MTc1NTdhMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.qSaDzNQJu2tfMxGEmUtVradXtvz73G-AiSjghyWHZZg";
 
   useEffect(() => {
-    const token = AsyncStorage.getItem("auth_token");
-    if (token) {
-      setIsLoggedIn(true);
-    }
+    const checkLoginStatus = async () => {
+      const sessionId = await AsyncStorage.getItem("session_id");
+
+      if (sessionId) {
+        setIsLoggedIn(true);
+      } else {
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: "Login" }],
+          })
+        );
+      }
+    };
+
+    checkLoginStatus();
   }, []);
 
   useEffect(() => {
@@ -112,15 +126,42 @@ export default function CriarWatchList() {
       return;
     }
 
-    await AsyncStorage.setItem(
-      "watchlist",
-      JSON.stringify({ name: watchlistName, filmes: watchlist })
-    );
-    alert("Watchlist criada com sucesso!");
+    const newWatchlist = { name: watchlistName, filmes: watchlist };
+
+    try {
+      const storedWatchlists = await AsyncStorage.getItem("watchlists");
+      let parsedWatchlists = [];
+
+      if (storedWatchlists) {
+        parsedWatchlists = JSON.parse(storedWatchlists);
+      }
+
+      parsedWatchlists.push(newWatchlist);
+
+      await AsyncStorage.setItem("watchlists", JSON.stringify(parsedWatchlists));
+
+      alert("Watchlist criada com sucesso!");
+      setShowModal(false);
+      setWatchlistName("");
+      setWatchlist([]);
+      navigation.dispatch(
+                    CommonActions.reset({
+                      index: 0,
+                      routes: [{ name: "Main" }],
+                    })
+                  )
+    } catch (error) {
+      console.error("Error saving watchlist:", error);
+    }
   };
 
   const redirectToLogin = () => {
-    navigation.navigate("Login");
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: "Login" }],
+      })
+    );
   };
 
   return (
@@ -214,19 +255,20 @@ export default function CriarWatchList() {
 
       {isLoggedIn ? (
         <View>
-          <Button title="Criar Watchlist" onPress={() => setShowModal(true)} />
-          {showModal && (
-            <View style={styles.modal}>
-              <Text>Tem certeza que deseja criar essa watchlist?</Text>
-              <Button title="Sim" onPress={createWatchlist} />
-              <Button title="Não" onPress={() => setShowModal(false)} />
-            </View>
-          )}
           <TextInput
             style={styles.input}
             value={watchlistName}
             onChangeText={setWatchlistName}
             placeholder="Digite um nome para sua Watchlist"
+          />
+          <Button
+            title="Criar Watchlist"
+            onPress={() => setShowModal(true)}
+          />
+          <CustomModal
+            visible={showModal}
+            onConfirm={createWatchlist}
+            onCancel={() => setShowModal(false)}
           />
         </View>
       ) : (
@@ -239,54 +281,106 @@ export default function CriarWatchList() {
   );
 }
 
+
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     padding: 20,
-    backgroundColor: "#fff",
+    backgroundColor: "#ac9ecf",
+    alignItems: "center",
+    justifyContent: "center",
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
     textAlign: "center",
+    color: "#000",
     marginBottom: 20,
   },
   filters: {
+    width: "100%",
     marginBottom: 20,
+    backgroundColor: "#ffffffaa",
+    padding: 15,
+    borderRadius: 10,
   },
   input: {
     borderWidth: 1,
+    borderColor: "#000",
+    backgroundColor: "#fff",
     padding: 10,
-    marginBottom: 10,
     borderRadius: 5,
+    marginBottom: 10,
+    color: "#000",
   },
   genresContainer: {
+    flexWrap: "wrap",
+    flexDirection: "row",
+    justifyContent: "center",
     marginBottom: 20,
   },
   genreCheckbox: {
     flexDirection: "row",
     alignItems: "center",
+    marginBottom: 10,
+    marginHorizontal: 5,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderWidth: 1,
+    borderRadius: 4,
+    borderColor: "#000",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+    backgroundColor: "#fff",
+  },
+  checkboxSelected: {
+    backgroundColor: "#baa7cc",
+    borderColor: "#baa7cc",
+  },
+  checkboxText: {
+    color: "#000",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  genreText: {
+    fontSize: 14,
+    color: "#000",
   },
   filmesList: {
+    width: "100%",
     marginBottom: 20,
   },
-  filmeItem: {
-    marginBottom: 10,
+  movieItem: {
+    marginBottom: 15,
+    alignItems: "center",
   },
   filmePoster: {
-    width: 100,
-    height: 150,
+    width: 120,
+    height: 180,
+    borderRadius: 8,
   },
   filmeTitle: {
     textAlign: "center",
+    color: "#000",
+    marginTop: 5,
+    fontWeight: "bold",
   },
   watchlistSummary: {
+    width: "100%",
+    backgroundColor: "#ffffffaa",
+    padding: 15,
+    borderRadius: 10,
     marginBottom: 20,
   },
   subTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
+    textAlign: "center",
     marginBottom: 10,
+    color: "#000",
   },
   watchlistItem: {
     flexDirection: "row",
@@ -296,6 +390,7 @@ const styles = StyleSheet.create({
   watchlistPoster: {
     width: 50,
     height: 75,
+    borderRadius: 5,
   },
   modal: {
     padding: 20,
@@ -304,26 +399,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderWidth: 1,
-    borderRadius: 4,
-    borderColor: "#000",
+  button: {
+    backgroundColor: "#6f42c1",
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 5,
     alignItems: "center",
-    justifyContent: "center",
-    marginRight: 10,
+    marginTop: 10,
   },
-  checkboxSelected: {
-    backgroundColor: "#007BFF",
-    borderColor: "#007BFF",
-  },
-  checkboxText: {
-    color: "#FFF",
+  buttonText: {
+    color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
   },
-  genreText: {
-    fontSize: 16,
-  },
 });
+

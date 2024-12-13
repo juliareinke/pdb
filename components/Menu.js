@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { CommonActions } from '@react-navigation/native';
 
 export default function Menu() {
   const [menuAberto, setMenuAberto] = useState(false);
@@ -25,7 +26,12 @@ export default function Menu() {
             style={styles.menuItem}
             onPress={() => {
               toggleMenu();
-              navigation.navigate("Main");
+              navigation.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [{ name: 'Main' }],
+                })
+              );
             }}
           >
             <Text style={styles.menuText}>Início</Text>
@@ -34,7 +40,12 @@ export default function Menu() {
             style={styles.menuItem}
             onPress={() => {
               toggleMenu();
-              navigation.navigate("CriarWatchlist");
+              navigation.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [{ name: 'CriarWatchlist' }],
+                })
+              );
             }}
           >
             <Text style={styles.menuText}>Criar Watchlist</Text>
@@ -43,7 +54,12 @@ export default function Menu() {
             style={styles.menuItem}
             onPress={() => {
               toggleMenu();
-              navigation.navigate("MeusFavoritos");
+              navigation.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [{ name: 'MeusFavoritos' }],
+                })
+              );
             }}
           >
             <Text style={styles.menuText}>Meus Favoritos</Text>
@@ -52,7 +68,26 @@ export default function Menu() {
             style={styles.menuItem}
             onPress={() => {
               toggleMenu();
-              navigation.navigate("Perfil");
+              navigation.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [{ name: 'MinhasWatchlists' }],
+                })
+              );
+            }}
+          >
+            <Text style={styles.menuText}>Minhas Watchlists</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => {
+              toggleMenu();
+              navigation.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [{ name: 'Perfil' }],
+                })
+              );
             }}
           >
             <Text style={styles.menuText}>Meu Perfil</Text>
@@ -62,6 +97,7 @@ export default function Menu() {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   menuContainer: {

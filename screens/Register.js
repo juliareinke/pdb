@@ -1,14 +1,10 @@
-import { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Alert,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
+import { useState } from "react";
+import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+
+import { API_KEY } from "@env";
 
 export default function RegisterPage() {
   const [fullName, setFullName] = useState("");
@@ -16,17 +12,27 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const navigation = useNavigation();
 
-  useEffect(() => {
-    const checkUser = async () => {
-      const savedUser = await AsyncStorage.getItem("user_info");
-      if (savedUser) {
-        navigation.navigate("Perfil");
-      }
-    };
-    checkUser();
-  }, [navigation]);
+  const axiosInstance = axios.create({
+    baseURL: "https://api.themoviedb.org/3",
+    headers: {
+      Authorization: `Bearer ${API_KEY}`,
+      "Content-Type": "application/json;charset=utf-8",
+    },
+  });
 
-  const handleSubmit = async () => {
+  const createGuestSession = async () => {
+    try {
+      const response = await axiosInstance.get("/authentication/guest_session/new");
+      const guestSessionId = response.data.guest_session_id;
+      await AsyncStorage.setItem("guest_session_id", guestSessionId);
+      return guestSessionId;
+    } catch (error) {
+      console.error("Erro ao criar sessão de convidado", error);
+      throw error;
+    }
+  };
+
+  const handleRegister = async () => {
     if (!fullName || !username || !password) {
       Alert.alert("Erro", "Por favor, preencha todos os campos.");
       return;
@@ -41,11 +47,15 @@ export default function RegisterPage() {
 
     try {
       await AsyncStorage.setItem("user_info", JSON.stringify(userInfo));
-      Alert.alert("Sucesso", "Cadastro realizado com sucesso!");
-      navigation.navigate("Perfil");
+
+      const guestSessionId = await createGuestSession();
+      console.log("Guest Session ID:", guestSessionId);
+
+      Alert.alert("Sucesso", "Sessão criada com sucesso!");
+      navigation.replace("Perfil");
     } catch (error) {
-      console.error("Erro ao salvar usuário", error);
-      Alert.alert("Erro", "Houve um problema ao cadastrar seu usuário.");
+      console.error("Erro ao salvar usuário ou criar sessão", error);
+      Alert.alert("Erro", "Houve um problema ao criar sua conta.");
     }
   };
 
@@ -74,9 +84,7 @@ export default function RegisterPage() {
         secureTextEntry
         testID="password-input"
       />
-      <TouchableOpacity onPress={handleSubmit} testID="register-button">
-        <Text style={styles.button}>Criar Conta</Text>
-      </TouchableOpacity>
+      <Button title="Criar Conta" onPress={handleRegister} />
     </View>
   );
 }
@@ -101,12 +109,5 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     paddingLeft: 10,
     borderRadius: 5,
-  },
-  button: {
-    backgroundColor: "#007bff",
-    color: "#fff",
-    padding: 10,
-    borderRadius: 5,
-    textAlign: "center",
   },
 });

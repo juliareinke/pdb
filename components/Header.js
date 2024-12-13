@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { CommonActions } from '@react-navigation/native';
 
 export default function Header() {
   const [usuario, setUsuario] = useState(null);
   const navigation = useNavigation();
-  const [userAvatar, setUserAvatar] = useState(null);
 
   useEffect(() => {
     const recuperarUsuario = async () => {
@@ -23,25 +23,18 @@ export default function Header() {
     recuperarUsuario();
   }, []);
 
-  useEffect(() => {
-    const loadUserData = async () => {
-      try {
-        const userData = await AsyncStorage.getItem("user");
-        if (userData) {
-          const parsedData = JSON.parse(userData);
-          setUserAvatar(parsedData.avatar);
-        }
-      } catch (error) {
-        console.error("Error loading user data:", error);
-      }
-    };
-
-    loadUserData();
-  }, []);
-
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={() => navigation.navigate("Main")}>
+      <TouchableOpacity
+        onPress={() => {
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [{ name: "Main" }],
+            })
+          );
+        }}
+      >
         <Text testID="header-title" style={styles.header}>
           R E I N K E watch
         </Text>
@@ -53,11 +46,7 @@ export default function Header() {
         <Image
           testID="avatar-image"
           source={{
-            uri: usuario
-              ? usuario.avatar
-              : userAvatar
-              ? userAvatar
-              : "https://as2.ftcdn.net/v2/jpg/03/49/49/79/1000_F_349497933_Ly4im8BDmHLaLzgyKg2f2yZOvJjBtlw5.jpg",
+            uri: usuario?.avatar || "https://as2.ftcdn.net/v2/jpg/03/49/49/79/1000_F_349497933_Ly4im8BDmHLaLzgyKg2f2yZOvJjBtlw5.jpg", // Avatar padrão se não houver
           }}
           style={styles.avatar}
         />

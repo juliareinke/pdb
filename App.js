@@ -4,17 +4,18 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
 import { TMDB_ACCESS_TOKEN } from '@env';
-console.log(TMDB_ACCESS_TOKEN);
 
-import Header from './components/Header.js';
+import Header from "./components/Header.js"
 import Menu from './components/Menu.js';
-import Main from './components/Main.js';
+import Main from './screens/Main.js';
 import Info from './components/Info.js';
-import CriarWatchlist from './components/CriarWatchList.js';
-import LoginPage from './components/Login.js';
-import RegisterPage from './components/Register.js';
-import Perfil from './components/Perfil.js';
-import MeusFavoritos from './components/Favoritos.js';
+import CriarWatchlist from './screens/CriarWatchList.js';
+import LoginPage from './screens/Login.js';
+import RegisterPage from './screens/Register.js';
+import Perfil from './screens/Perfil.js';
+import MeusFavoritos from './screens/Favoritos.js';
+import WatchList from './screens/WatchLists.js';
+import InfoWatchList from './components/InfoWatchList.js';
 
 import { Provider as PaperProvider, DefaultTheme } from 'react-native-paper';
 
@@ -30,7 +31,6 @@ const theme = {
 
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
-import { useCallback } from 'react';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -54,7 +54,6 @@ export default function App() {
             Authorization: `Bearer ${TMDB_ACCESS_TOKEN}`, 
           },
         });
-        console.log(response.data);
         setDataLoaded(true);
       } catch (error) {
         console.error('Erro ao carregar dados da API', error);
@@ -92,6 +91,8 @@ export default function App() {
           <Stack.Screen name="Main" component={Main} />
           <Stack.Screen name="Info" component={Info} />
           <Stack.Screen name="CriarWatchlist" component={CriarWatchlist} />
+          <Stack.Screen name="MinhasWatchlists" component={WatchList} />
+          <Stack.Screen name="InfoWatchList" component={InfoWatchList} />
           <Stack.Screen name="Login" component={LoginPage} />
           <Stack.Screen name="Register" component={RegisterPage} />
           <Stack.Screen name="Perfil" component={Perfil} />

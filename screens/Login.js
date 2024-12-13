@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { CommonActions } from '@react-navigation/native';
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -9,15 +10,34 @@ export default function LoginPage() {
   const navigation = useNavigation();
 
   const handleLogin = async () => {
-    if (username === "user" && password === "password") {
-      try {
-        await AsyncStorage.setItem("auth_token", "fake-jwt-token");
-        navigation.navigate("CriarWatchlist");
-      } catch (error) {
-        console.error("Erro ao armazenar token", error);
+    const storedUserData = await AsyncStorage.getItem("user_info");
+
+    if (storedUserData) {
+      const userData = JSON.parse(storedUserData);
+
+      if (userData.username === username && userData.password === password) {
+        try {
+          const sessionId = await AsyncStorage.getItem("session_id");
+          if (sessionId) {
+            Alert.alert("Sucesso", "Login bem-sucedido!");
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: "Main" }],
+              })
+            )
+          } else {
+            Alert.alert("Erro", "Sessão não encontrada. Faça o login novamente.");
+          }
+        } catch (error) {
+          console.error("Erro ao acessar a sessão", error);
+          Alert.alert("Erro", "Erro ao acessar a sessão.");
+        }
+      } else {
+        Alert.alert("Erro", "Nome de usuário ou senha incorretos!");
       }
     } else {
-      Alert.alert("Erro", "Nome de usuário ou senha incorretos!");
+      Alert.alert("Erro", "Nenhum usuário encontrado. Cadastre-se primeiro.");
     }
   };
 
@@ -40,10 +60,7 @@ export default function LoginPage() {
       <Button title="Entrar" onPress={handleLogin} />
       <Text style={styles.registerText}>
         Não tem uma conta?{" "}
-        <Text
-          style={styles.link}
-          onPress={() => navigation.navigate("Register")}
-        >
+        <Text style={styles.link} onPress={() => navigation.navigate("Register")}>
           Criar uma conta
         </Text>
       </Text>

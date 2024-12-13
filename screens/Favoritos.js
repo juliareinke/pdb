@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -70,12 +70,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 15,
-    backgroundColor: "#fff",
+    backgroundColor: "#ac9ecf",
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 10,
+    textAlign: "center"
   },
   message: {
     fontSize: 18,

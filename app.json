@@ -13,7 +13,10 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Nós precisamos acessar sua galeria para alterar seu avatar."
+      }
     },
     "android": {
       "adaptiveIcon": {
