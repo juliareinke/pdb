@@ -10,7 +10,7 @@ export default function MeusFavoritos() {
   useEffect(() => {
     const verificarUsuario = async () => {
       try {
-        const usuario = await AsyncStorage.getItem("user_info");
+        const usuario = await AsyncStorage.getItem("guest_session_id");
         if (!usuario) {
           navigation.navigate("Login");
         } else {

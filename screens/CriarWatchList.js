@@ -32,7 +32,7 @@ export default function CriarWatchList() {
 
   useEffect(() => {
     const checkLoginStatus = async () => {
-      const sessionId = await AsyncStorage.getItem("session_id");
+      const sessionId = await AsyncStorage.getItem("guest_session_id");
 
       if (sessionId) {
         setIsLoggedIn(true);

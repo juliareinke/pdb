@@ -17,7 +17,7 @@ export default function LoginPage() {
 
       if (userData.username === username && userData.password === password) {
         try {
-          const sessionId = await AsyncStorage.getItem("session_id");
+          const sessionId = await AsyncStorage.getItem("guest_session_id");
           if (sessionId) {
             Alert.alert("Sucesso", "Login bem-sucedido!");
             navigation.dispatch(
