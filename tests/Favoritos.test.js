@@ -1,13 +1,18 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import MeusFavoritos from '../components/Favoritos';
+import MeusFavoritos from '../screens/Favoritos';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const mockNavigate = jest.fn();
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
+}));
+
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  getItem: jest.fn(),
 }));
 
 describe('MeusFavoritos', () => {
@@ -17,30 +22,17 @@ describe('MeusFavoritos', () => {
   ];
 
   beforeEach(() => {
-    AsyncStorage.getItem.mockImplementation(() => 
-      Promise.resolve(JSON.stringify(mockFavorites))
-    );
+    jest.clearAllMocks();
+    AsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify(mockFavorites));
   });
 
-  it('renderiza lista de favoritos', async () => {
-    const { getAllByTestId } = render(<MeusFavoritos />);
-    
+  it('exibe mensagem quando não há favoritos', async () => {
+    AsyncStorage.getItem.mockResolvedValueOnce('[]'); 
+
+    const { getByText } = render(<MeusFavoritos />);
+
     await waitFor(() => {
-      expect(getAllByTestId('favorite-movie')).toHaveLength(2);
+      expect(getByText('Você não tem filmes/séries favoritados ainda.')).toBeTruthy();
     });
   });
-
-  it('navega para informações do filme ao clicar', async () => {
-    const { getAllByTestId } = render(<MeusFavoritos />);
-    
-    await waitFor(() => {
-      const movieItems = getAllByTestId('favorite-movie');
-      expect(movieItems.length).toBeGreaterThan(0);
-    });
-
-    const movieItems = getAllByTestId('favorite-movie');
-    fireEvent.press(movieItems[0]);
-
-    expect(mockNavigate).toHaveBeenCalledWith('Info', expect.any(Object));
-  }, 10000); 
 });

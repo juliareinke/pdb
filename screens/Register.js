@@ -84,7 +84,7 @@ export default function RegisterPage() {
         secureTextEntry
         testID="password-input"
       />
-      <Button title="Criar Conta" onPress={handleRegister} />
+      <Button title="Criar Conta"  testID="register-button" onPress={handleRegister} />
     </View>
   );
 }

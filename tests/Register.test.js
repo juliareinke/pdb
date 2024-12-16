@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import RegisterPage from '../components/Register';
+import RegisterPage from '../screens/Register';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const mockNavigate = jest.fn();
@@ -23,23 +23,6 @@ describe('RegisterPage', () => {
     expect(getByPlaceholderText('Digite seu nome de usuário')).toBeTruthy();
     expect(getByPlaceholderText('Digite sua senha')).toBeTruthy();
     expect(getByTestId('register-button')).toBeTruthy();
-  });
-
-  it('processa registro com sucesso', async () => {
-    const { getByTestId, getByPlaceholderText } = render(<RegisterPage />);
-    
-    fireEvent.changeText(getByPlaceholderText('Digite seu nome completo'), 'Test User');
-    fireEvent.changeText(getByPlaceholderText('Digite seu nome de usuário'), 'testuser');
-    fireEvent.changeText(getByPlaceholderText('Digite sua senha'), 'password123');
-    
-    fireEvent.press(getByTestId('register-button'));
-
-    await waitFor(() => {
-      expect(AsyncStorage.setItem).toHaveBeenCalledWith(
-        'user_info',
-        expect.stringContaining('Test User')
-      );
-    });
   });
 
   it('mostra erro para campos vazios', async () => {

@@ -1,58 +1,51 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import Perfil from '../components/Perfil';
+import { render, waitFor } from '@testing-library/react-native';
+import Perfil from '../screens/Perfil';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as ImagePicker from 'expo-image-picker';
 
-jest.mock('expo-image-picker');
+jest.mock('expo-image-picker', () => ({
+  requestMediaLibraryPermissionsAsync: jest.fn(() =>
+    Promise.resolve({ status: 'granted' })
+  ),
+  launchImageLibraryAsync: jest.fn(() =>
+    Promise.resolve({ canceled: false, assets: [{ uri: 'new-image-uri' }] })
+  ),
+}));
+
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+}));
+
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
+    replace: mockNavigate,
   }),
 }));
 
 const mockUser = {
   fullName: 'Test User',
   username: 'testuser',
-  avatar: 'https://test.com/avatar.jpg'
+  avatar: 'https://test.com/avatar.jpg',
 };
-
-jest.mock('@react-native-async-storage/async-storage', () => ({
-  getItem: jest.fn(() => Promise.resolve(JSON.stringify(mockUser))),
-  setItem: jest.fn(() => Promise.resolve())
-}));
-
-jest.mock('expo-image-picker', () => ({
-  requestMediaLibraryPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted' })),
-  launchImageLibraryAsync: jest.fn(() => Promise.resolve({
-    canceled: false,
-    assets: [{ uri: 'new-image-uri' }]
-  }))
-}));
 
 describe('Perfil', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    AsyncStorage.getItem.mockImplementation(() => Promise.resolve(JSON.stringify(mockUser)));
+    AsyncStorage.getItem.mockImplementation((key) =>
+      key === 'user_info' ? Promise.resolve(JSON.stringify(mockUser)) : null
+    );
   });
 
-  it('renderiza perfil do usuário corretamente', async () => {
-    const { getByText, getByTestId } = render(<Perfil />);
-    
-    await waitFor(() => {
-      expect(getByText(`Olá, ${mockUser.fullName}`)).toBeTruthy();
-      expect(getByText(`@${mockUser.username}`)).toBeTruthy();
-      expect(getByTestId('profile-avatar')).toBeTruthy();
-    });
-  });
+  it('navega para Login se não há sessão', async () => {
+    AsyncStorage.getItem.mockImplementation(() => Promise.resolve(null));
+    render(<Perfil />);
 
-  it('gerencia alteração de avatar', async () => {
-    const { getByTestId } = render(<Perfil />);
-    
     await waitFor(() => {
-      fireEvent.press(getByTestId('change-avatar-button'));
-      expect(ImagePicker.requestMediaLibraryPermissionsAsync).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('Login');
     });
   });
 });

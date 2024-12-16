@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import axios from "axios";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, CommonActions } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import CustomModal from "../components/CustomModal";
@@ -99,26 +99,27 @@ export default function CriarWatchList() {
     setWatchlist(watchlist.filter((f) => f.id !== filme.id));
   };
 
-  useEffect(() => {
-    const fetchGenres = async () => {
-      try {
-        const response = await axios.get(
-          "https://api.themoviedb.org/3/genre/movie/list?language=pt-BR",
-          {
-            headers: {
-              Authorization: `Bearer ${tokenJWT}`,
-              accept: "application/json",
-            },
-          }
-        );
-        setGenres(response.data.genres);
-      } catch (error) {
-        console.error("Erro ao buscar gêneros:", error);
-      }
-    };
+  const fetchGenres = async () => {
+    try {
+      const response = await axios.get(
+        "https://api.themoviedb.org/3/genre/movie/list?language=pt-BR",
+        {
+          headers: {
+            Authorization: `Bearer ${tokenJWT}`,
+            accept: "application/json",
+          },
+        }
+      );
 
-    fetchGenres();
-  }, []);
+      if (response && response.data && response.data.genres) {
+        setGenres(response.data.genres);
+      } else {
+        console.error("No genres data found in the response.");
+      }
+    } catch (error) {
+      console.error("Erro ao buscar gêneros:", error);
+    }
+  };
 
   const createWatchlist = async () => {
     if (!watchlistName) {
@@ -138,18 +139,21 @@ export default function CriarWatchList() {
 
       parsedWatchlists.push(newWatchlist);
 
-      await AsyncStorage.setItem("watchlists", JSON.stringify(parsedWatchlists));
+      await AsyncStorage.setItem(
+        "watchlists",
+        JSON.stringify(parsedWatchlists)
+      );
 
       alert("Watchlist criada com sucesso!");
       setShowModal(false);
       setWatchlistName("");
       setWatchlist([]);
       navigation.dispatch(
-                    CommonActions.reset({
-                      index: 0,
-                      routes: [{ name: "Main" }],
-                    })
-                  )
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: "Main" }],
+        })
+      );
     } catch (error) {
       console.error("Error saving watchlist:", error);
     }
@@ -261,10 +265,7 @@ export default function CriarWatchList() {
             onChangeText={setWatchlistName}
             placeholder="Digite um nome para sua Watchlist"
           />
-          <Button
-            title="Criar Watchlist"
-            onPress={() => setShowModal(true)}
-          />
+          <Button title="Criar Watchlist" onPress={() => setShowModal(true)} />
           <CustomModal
             visible={showModal}
             onConfirm={createWatchlist}
@@ -280,7 +281,6 @@ export default function CriarWatchList() {
     </ScrollView>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
@@ -413,4 +413,3 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
-

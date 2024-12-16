@@ -21,16 +21,17 @@ export default function Perfil() {
 
   const checkSessionAndLoadUser = async () => {
     try {
-      const sessionId = await AsyncStorage.getItem("session_id");
+      const sessionId = await AsyncStorage.getItem("guest_session_id");
       if (!sessionId) {
-        navigation.replace("Login"); 
+        navigation.replace("Login");
         return;
       }
+
       const data = await AsyncStorage.getItem("user_info");
       if (data) {
         setUserData(JSON.parse(data));
       } else {
-        navigation.replace("Login"); 
+        navigation.replace("Login");
       }
     } catch (error) {
       console.error("Erro ao checar a sessão:", error);

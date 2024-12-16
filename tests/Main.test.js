@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import Main from '../components/Main';
+import Main from '../screens/Main';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
